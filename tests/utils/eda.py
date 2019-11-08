@@ -1,5 +1,8 @@
 #check for missing data 
 #credits: https://www.kaggle.com/gpreda/home-credit-default-risk-extensive-eda
+import pandas as pd
+import numpy as np
+
 def missing_data(data):
     total = data.isnull().sum().sort_values(ascending = False)
     percent = (data.isnull().sum()/data.isnull().count()*100).sort_values(ascending = False)

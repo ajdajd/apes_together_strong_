@@ -12,7 +12,7 @@ class CatBoostCV():
         self.cb_params = kwargs
         self.nums = nums
         self.cats = cats
-        self.metric = kwargs['metric']
+        self.metric = str(kwargs['metric'])
 
     def fit(self, X, y=None, **kwargs):
 
@@ -150,7 +150,7 @@ class LGBMCV():
                 evals_result=self.evals_results_[i],
                 **kwargs
             )
-            self.model_scores_.append(model.best_score['eval'][self.metric])
+            self.model_scores_.append(model.best_score['eval'][str(self.metric)])
             # Store the feature importances
             self.feature_importances_['gain_{}'.format(i)] = model.feature_importance('gain')
             self.feature_importances_['split_{}'.format(i)] = model.feature_importance('split')
