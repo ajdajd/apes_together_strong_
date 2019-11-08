@@ -5,7 +5,7 @@ __pycache__/
 *.csv
 # C extensions
 *.so
-
+catboost_info
 # Distribution / packaging
 .Python
 build/
