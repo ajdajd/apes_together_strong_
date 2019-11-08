@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn import model_selection
 from sklearn import utils
+import gc; gc.enable()
 
 class CatBoostCV():
 
@@ -12,7 +13,7 @@ class CatBoostCV():
         self.cb_params = kwargs
         self.nums = nums
         self.cats = cats
-        self.metric = str(kwargs['metric'])
+        self.metric = str(kwargs['eval_metric'])
 
     def fit(self, X, y=None, **kwargs):
 
