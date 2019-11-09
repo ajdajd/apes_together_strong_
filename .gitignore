@@ -6,6 +6,8 @@ __pycache__/
 # C extensions
 *.so
 catboost_info
+cat_feature_index.*
+data_description
 # Distribution / packaging
 .Python
 build/

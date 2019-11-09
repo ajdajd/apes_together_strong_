@@ -1,4 +1,4 @@
-from catboost import CatBoostClassifier, FeaturesData, Pool
+from catboost import CatBoostClassifier, FeaturesData, Pool, CatBoostRegressor
 import lightgbm as lgbm
 import numpy as np
 import pandas as pd
@@ -8,11 +8,12 @@ import gc; gc.enable()
 
 class CatBoostCV():
 
-    def __init__(self, cv=None, cats=None, nums=None, **kwargs):
+    def __init__(self, cv=None, obj='binary', cats=None, nums=None, **kwargs):
         self.cv = cv
         self.cb_params = kwargs
         self.nums = nums
         self.cats = cats
+        self.obj = obj
         self.metric = str(kwargs['eval_metric'])
 
     def fit(self, X, y=None, **kwargs):
@@ -60,11 +61,16 @@ class CatBoostCV():
                     cat_feature_names=self.cats
                 ), label=y_val)
 
-                
-            model = CatBoostClassifier(
-                **self.cb_params
-            )
-        
+            if self.obj == 'binary':    
+                model = CatBoostClassifier(
+                    **self.cb_params
+                )
+            else:
+                model = CatBoostRegressor(
+                    **self.cb_params
+                )
+
+            
             model.fit(
                 fit_set,
                 eval_set=val_set,
@@ -98,7 +104,10 @@ class CatBoostCV():
             y = np.zeros(X.shape[0])
 
         for model in self.models_:
-            y += model.predict_proba(X)[:,1]
+            if self.obj == 'binary':
+                y += model.predict_proba(X)[:,1]
+            else:
+                y += model.predict(X)
 
         return y / len(self.models_)
 
