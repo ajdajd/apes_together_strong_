@@ -4,3 +4,4 @@ pandas==0.25.3
 category_encoders==2.1.0
 lightgbm==2.3.0
 scikit_learn==0.21.3
+kaggle==1.5.6

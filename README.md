@@ -3,9 +3,10 @@
 MLHackFest 2019 Repo
 
 ## How to use
-1. create your own `conda` or `virtual environment`
-2. run `pip install -r requirements.txt` 
-3. get wild.
+1. Create your own `conda` or `virtual environment`.
+2. Run `pip install -r requirements.txt`.
+3. Add Kaggle API credentials. See instructions [here](https://github.com/Kaggle/kaggle-api#api-credentials).
+4. get wild
 
 ## Structure
 `test` folder contains all experiment notebooks from kaggle competitions with the pipeline created in utils/models.
