@@ -181,4 +181,84 @@ class LGBMCV():
         
         return y / len(self.models_)
     
+from fastai import *
+from fastai.tabular import *
+from fastai.callbacks import SaveModelCallback
+
+class FastAICV():
     
+    def __init__(self, folds, cat_names, cont_names, procs, metric, metric_mode, bs, obj='binary'):
+        self.folds = folds
+        self.cat_names = cat_names
+        self.cont_names = cont_names
+        self.procs = procs
+        self.metric = metric
+        self.obj = obj
+        self.metric_mode = metric_mode
+        self.bs = bs
+        
+    def fit_predict(self, X, X_test, epochs, lr, wd=None, y=None, **kwargs):
+        self.epochs = epochs
+        self.lr = lr
+        self.wd = wd
+        self.models_ = []
+        self.model_scores_ = []
+        self.oof_preds_ = []
+        self.seed = 42
+        try:
+            self.sub_preds = np.zeros(len(X_test))
+        except:
+            self.sub_preds = np.zeros(X_test.shape[0])
+        for i, (fit_idx, val_idx) in enumerate(self.folds):
+            if self.obj == 'binary':
+                data = (
+                    TabularList.from_df( 
+                        X, path='.', cat_names=self.cat_names, \
+                        cont_names=self.cont_names, procs=self.procs     
+                            ).split_by_idx(val_idx
+                        ).label_from_df(cols=y
+                       ).add_test(TabularList.from_df(X_test, path=".", cat_names=self.cat_names, \
+                        cont_names=self.cont_names, procs=self.procs)   
+                     ).databunch(bs=self.bs)
+                )
+                
+                learn = tabular_learner(data, metrics=self.metric, **kwargs)
+                
+                learn.fit_one_cycle(self.epochs, self.lr, wd=self.wd,\
+                   callbacks=[SaveModelCallback(learn, every='improvement', mode=self.metric_mode, \
+                                monitor=self.metric.__name__, name=f'fold{i}_{self.seed}')]
+                                   )
+#                 pred, _ = learn.get_preds()
+#                 pred = pred[:,1]
+                self.models_.append(learn)
+                self.model_scores_.append(learn.validate(metrics=[self.metric])[1])
+                pred_test, _ = learn.get_preds(DatasetType.Test)
+                self.sub_preds += np.array(pred_test[:,1])
+            else:
+                data = (
+                    TabularList.from_df( 
+                        X, path='.', cat_names=self.cat_names, \
+                        cont_names=self.cont_names, procs=self.procs     
+                            ).split_by_idx(val_idx
+                        ).label_from_df(cols=y, label_cls=FloatList, log=True
+                       ).add_test(TabularList.from_df(X_test, path=".", cat_names=self.cat_names, \
+                        cont_names=self.cont_names, procs=self.procs)   
+                     ).databunch(bs=self.bs)
+                )
+                
+                learn = tabular_learner(data, metrics=self.metric, **kwargs)
+                
+                learn.fit_one_cycle(self.epochs, self.lr, wd=self.wd,\
+                   callbacks=[SaveModelCallback(learn, every='improvement', mode=self.metric_mode, \
+                                monitor=self.metric.__name__, name=f'fold_{i}_{self.seed}')]
+                                   )
+#                 pred, _ = learn.get_preds()
+#                 pred = pred[:,1]
+                self.models_.append(learn)
+                self.model_scores_.append(learn.validate(metrics=[self.metric])[1])
+                pred_test, _ = learn.get_preds(DatasetType.Test)
+                self.sub_preds += np.array(pred_test.reshape(-1))
+        return self
+    def predict(self):
+        
+        return self.sub_preds / len(self.models_)
