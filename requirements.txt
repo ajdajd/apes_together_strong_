@@ -1,6 +1,7 @@
-catboost==0.18.1
 numpy==1.17.3
 pandas==0.25.3
 category_encoders==2.1.0
+catboost==0.18.1
+fastai==1.0.59
 lightgbm==2.3.0
 scikit_learn==0.21.3
