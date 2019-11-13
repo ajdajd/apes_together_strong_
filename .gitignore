@@ -5,6 +5,7 @@ __pycache__/
 *.csv
 # C extensions
 *.so
+*.pth
 catboost_info
 cat_feature_index.*
 data_description
