@@ -9,16 +9,20 @@ MLHackFest 2019 Repo
 4. get wild
 
 ## Structure
-`test` folder contains all experiment notebooks from kaggle competitions with the pipeline created in utils/models.
+`test` folder contains all experiment notebooks from Kaggle competitions with the pipeline created in utils/models.
 
 `src` folder is reserved for competition purposes, need to copy tests/utils in the folder to use the modules.
 
-`data` folder is used for downloading dataset in kaggle using `KAGGLE API`
+`data` folder is used for downloading dataset in Kaggle using `KAGGLE API`.
 
-src and test folder must have it's own `submission` folder when generating predictions in competition/challenges for easier tracking of the submission files.
+`src` and `test` folders must have their own `submission` folder when generating predictions in competition/challenges for easier tracking of the submission files.
 
 ## Notes:
-* When using `CatBoostCV` specify in *__init__* the `obj`  i.e `regression` or `binary` to use the correct algorithm to use. `LGBMCV` works for both, no need to specify the `obj`
+* You must join the competition first before you are able to download data thru Kaggle API.
+
+* You must join the Kaggle competition first before you are able to download its dataset thru the Kaggle API.
+
+* When using `CatBoostCV` specify in *__init__* the `obj`  i.e `regression` or `binary` to use the correct algorithm to use. `LGBMCV` works for both, no need to specify the `obj`.
 
 * When dealing with Regression Problem transform the target to `np.log` for easier training then transform again back to original state using `np.exp`. if `negative values` are encountered in the prediction values, just use `pd.Series.clip` function to clip the values to its min, and max.
 
