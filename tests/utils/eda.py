@@ -4,9 +4,15 @@ import pandas as pd
 import numpy as np
 
 def missing_data(data):
+    '''
+    Count the number of missing values in each column
+    '''
     total = data.isnull().sum().sort_values(ascending = False)
     percent = (data.isnull().sum()/data.isnull().count()*100).sort_values(ascending = False)
     return pd.concat([total, percent], axis=1, keys=['Total', 'Percent'])
+
+def get_column_types(df):
+    return get_cats_nums(df)
 
 def get_cats_nums(df):
     cats=[]
@@ -19,24 +25,21 @@ def get_cats_nums(df):
     return cats, nums
 
 #Based on this great kernel https://www.kaggle.com/arjanso/reducing-dataframe-memory-size-by-65
-def reduce_mem_usage(df):
+def reduce_mem_usage(df, verbose=2):
     start_mem_usg = df.memory_usage().sum() / 1024**2
-    print("Memory usage of properties dataframe is :",start_mem_usg," MB")
+    if verbose > 0:
+        print("Memory usage of properties dataframe is :",start_mem_usg," MB")
     NAlist = [] # Keeps track of columns that have missing values filled in. 
     
     for col in df.columns:
         
         if df[col].dtype != object and col != 'timestamp':  # Exclude strings            
-            # Print current column type
-            print("******************************")
-            print("Column: ",col)
-            print("dtype before: ",df[col].dtype)            
+                       
             # make variables for Int, max and min
             IsInt = False
             mx = df[col].max()
             mn = df[col].min()
-            print("min for this col: ",mn)
-            print("max for this col: ",mx)
+            
             # Integer does not support NA, therefore, NA needs to be filled
             if not np.isfinite(df[col]).all(): 
                 NAlist.append(col)
@@ -71,13 +74,20 @@ def reduce_mem_usage(df):
             # Make float datatypes 32 bit
             else:
                 df[col] = df[col].astype(np.float32)
-            
-            # Print new column type
-            print("dtype after: ",df[col].dtype)
-            print("******************************")
-    # Print final result
-    print("___MEMORY USAGE AFTER COMPLETION:___")
-    mem_usg = df.memory_usage().sum() / 1024**2 
-    print("Memory usage is: ",mem_usg," MB")
-    print("This is ",100*mem_usg/start_mem_usg,"% of the initial size")
+            if verbose > 1:
+                # Print current column type
+                print("******************************")
+                print("Column: ",col)
+                print("dtype before: ",df[col].dtype) 
+                # Print new column type
+                print("min for this col: ",mn)
+                print("max for this col: ",mx)
+                print("dtype after: ",df[col].dtype)
+                print("******************************")
+    if verbose > 0:
+        # Print final result
+        print("___MEMORY USAGE AFTER COMPLETION:___")
+        mem_usg = df.memory_usage().sum() / 1024**2 
+        print("Memory usage is: ",mem_usg," MB")
+        print("This is ",100*mem_usg/start_mem_usg,"% of the initial size")
     return df
