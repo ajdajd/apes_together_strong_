@@ -262,3 +262,75 @@ class FastAICV():
     def predict(self):
         
         return self.sub_preds / len(self.models_)
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import f1_score
+
+class RandomForestCV:
+    def __init__(self, cv=None, obj="binary", cats=None, nums=None, **kwargs):
+        self.cv = cv
+        self.rf_params = kwargs
+        self.nums = nums
+        self.cats = cats
+        self.obj = obj
+        # self.metric = str(kwargs["metric"])
+
+    def fit(self, X, y=None, **kwargs):
+
+        self.models_ = []
+        self.feature_importances_ = pd.DataFrame()
+        self.model_scores_ = []
+        self.model_best_iterations_ = []
+
+        for i, (fit_idx, val_idx) in enumerate(self.cv):
+            # Split the dataset according to the fold indexes
+            if isinstance(X, pd.DataFrame):
+                X_fit = X.iloc[fit_idx]
+                X_val = X.iloc[val_idx]
+            else:
+                X_fit = X[fit_idx]
+                X_val = X[val_idx]
+
+            if isinstance(y, pd.Series):
+                y_fit = y.iloc[fit_idx]
+                y_val = y.iloc[val_idx]
+            else:
+                y_fit = y[fit_idx]
+                y_val = y[val_idx]
+
+            if self.obj == "binary":
+                model = RandomForestClassifier(**self.rf_params)
+            else:
+                raise Exception(f"{self.obj} not supported.")
+            
+            model.fit(X=X_fit, y=y_fit, **kwargs)
+
+            # Store the feature importances
+            if i == 0:
+                self.feature_importances_["feature_names"] = X.columns
+            self.feature_importances_["importance_{}".format(i)] = model.feature_importances_
+
+            self.model_scores_.append(f1_score(y_val, model.predict(X_val), average='macro'))
+            # self.model_best_iterations_.append(model.best_iteration_)
+
+            # Store the model
+            self.models_.append(model)
+            del X_fit, y_fit, X_val, y_val, model
+            gc.collect()
+
+        return self
+
+    def predict(self, X):
+
+        utils.validation.check_is_fitted(self, ["models_"])
+        # if pandas
+        try:
+            y = np.zeros(len(X))
+        except:
+            y = np.zeros(X.shape[0])
+
+        for model in self.models_:
+            if self.obj == "binary":
+                y += model.predict_proba(X)[:, 1]
+
+        return y
