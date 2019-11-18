@@ -47,21 +47,21 @@ class CatBoostCV():
                 data=FeaturesData(
 
                     num_feature_data=X_fit[self.nums].values,
-                    cat_feature_data=X_fit[self.cats].values,
+                    # cat_feature_data=X_fit[self.cats].values,
                     num_feature_names=self.nums,
-                    cat_feature_names=self.cats
+                    # cat_feature_names=self.cats
                 ), label=y_fit) 
             
             val_set = Pool(
                 data=FeaturesData(
 
                     num_feature_data=X_val[self.nums].values,
-                    cat_feature_data=X_val[self.cats].values,
+                    # cat_feature_data=X_val[self.cats].values,
                     num_feature_names=self.nums,
-                    cat_feature_names=self.cats
+                    # cat_feature_names=self.cats
                 ), label=y_val)
 
-            if self.obj == 'binary':    
+            if self.obj in ["binary", "multiclass"]:    
                 model = CatBoostClassifier(
                     **self.cb_params
                 )
@@ -96,20 +96,35 @@ class CatBoostCV():
 
     def predict(self, X):
 
-        utils.validation.check_is_fitted(self, ['models_'])
+        # utils.validation.check_is_fitted(self, ['models_'])
+        # # if pandas
+        # try:
+        #     y = np.zeros(len(X))
+        # except:
+        #     y = np.zeros(X.shape[0])
+
+        # for model in self.models_:
+        #     if self.obj == 'binary':
+        #         y += model.predict_proba(X)[:,1]
+        #     else:
+        #         y += model.predict(X)
+
+        # return y / len(self.models_)
+        utils.validation.check_is_fitted(self, ["models_"])
         # if pandas
-        try:
-            y = np.zeros(len(X))
-        except:
-            y = np.zeros(X.shape[0])
-
+        # try:
+        #     y = np.zeros(len(X))
+        # except:
+        #     y = np.zeros(X.shape[0])
+        
+        all_preds = []
         for model in self.models_:
-            if self.obj == 'binary':
-                y += model.predict_proba(X)[:,1]
-            else:
-                y += model.predict(X)
-
-        return y / len(self.models_)
+            if self.obj in ["binary", "multiclass"]:
+                model_preds = model.predict_proba(X)
+                all_preds.append(model_preds)
+        
+        all_preds = np.array(all_preds).mean(axis=0).argmax(axis=1)
+        return all_preds
 
 import lightgbm as lgbm
 from sklearn import utils
