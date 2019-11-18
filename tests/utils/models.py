@@ -281,6 +281,7 @@ class RandomForestCV:
         self.feature_importances_ = pd.DataFrame()
         self.model_scores_ = []
         self.model_best_iterations_ = []
+        self.model_classes_ = []
 
         for i, (fit_idx, val_idx) in enumerate(self.cv):
             # Split the dataset according to the fold indexes
@@ -297,12 +298,12 @@ class RandomForestCV:
             else:
                 y_fit = y[fit_idx]
                 y_val = y[val_idx]
-
-            if self.obj == "binary":
+            
+            if self.obj in ["binary", "multiclass"]:
                 model = RandomForestClassifier(**self.rf_params)
             else:
                 raise Exception(f"{self.obj} not supported.")
-            
+
             model.fit(X=X_fit, y=y_fit, **kwargs)
 
             # Store the feature importances
@@ -310,11 +311,15 @@ class RandomForestCV:
                 self.feature_importances_["feature_names"] = X.columns
             self.feature_importances_["importance_{}".format(i)] = model.feature_importances_
 
+            # Store model score
             self.model_scores_.append(f1_score(y_val, model.predict(X_val), average='macro'))
-            # self.model_best_iterations_.append(model.best_iteration_)
 
             # Store the model
             self.models_.append(model)
+
+            # Store the classes
+            self.model_classes_.append(model.classes_)
+
             del X_fit, y_fit, X_val, y_val, model
             gc.collect()
 
@@ -324,13 +329,13 @@ class RandomForestCV:
 
         utils.validation.check_is_fitted(self, ["models_"])
         # if pandas
-        try:
-            y = np.zeros(len(X))
-        except:
-            y = np.zeros(X.shape[0])
+        # try:
+        #     y = np.zeros(len(X))
+        # except:
+        #     y = np.zeros(X.shape[0])
 
         for model in self.models_:
-            if self.obj == "binary":
-                y += model.predict_proba(X)[:, 1]
-
+            if self.obj in ["binary", "multiclass"]:
+                y = model.predict_proba(X).argmax(axis=1)
+        
         return y
