@@ -333,9 +333,14 @@ class RandomForestCV:
         #     y = np.zeros(len(X))
         # except:
         #     y = np.zeros(X.shape[0])
-
+        
+        all_preds = []
+        
         for model in self.models_:
             if self.obj in ["binary", "multiclass"]:
-                y = model.predict_proba(X).argmax(axis=1)
+                model_preds = model.predict_proba(X)
+                all_preds.append(model_preds)
         
-        return y
+        all_preds = np.array(all_preds).mean(axis=0).argmax(axis=1)
+
+        return all_preds
