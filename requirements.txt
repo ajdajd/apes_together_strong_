@@ -6,6 +6,6 @@ fastai==1.0.59
 lightgbm==2.3.0
 scikit_learn==0.21.3
 kaggle==1.5.6
-tensorflow==2.0.0
+tensorflow==2.5.3
 Keras==2.3.1
 
